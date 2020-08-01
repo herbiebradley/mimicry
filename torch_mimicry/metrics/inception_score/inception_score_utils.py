@@ -44,8 +44,8 @@ def get_predictions(images, device=None, batch_size=50, print_every=20):
         inception_utils._get_inception_layer(sess)
 
         # Define input/outputs of default graph.
-        pool3 = sess.graph.get_tensor_by_name('pool_3:0')
-        w = sess.graph.get_operation_by_name("softmax/logits/MatMul").inputs[1]
+        pool3 = sess.graph.get_tensor_by_name('inception_model/pool_3:0')
+        w = sess.graph.get_operation_by_name("inception_model/softmax/logits/MatMul").inputs[1]
         # pool3 = sess.graph.get_tensor_by_name('inception_model/pool_3:0') # TODO: Remove when safe. TF2 syntax changes again.
         # w = sess.graph.get_operation_by_name(
         #     "inception_model/softmax/logits/MatMul").inputs[1] # TODO: Remove when safe. TF2 syntax changes again.
@@ -57,7 +57,7 @@ def get_predictions(images, device=None, batch_size=50, print_every=20):
         for i in range(num_batches):
             batch = images[i * batch_size:(i + 1) * batch_size]
 
-            pred = sess.run(softmax, {'ExpandDims:0': batch})
+            pred = sess.run(softmax, {'inception_model/ExpandDims:0': batch})
             # pred = sess.run(softmax, {'inception_model/ExpandDims:0': batch}) # TODO: Remove when safe. TF2 syntax changes again.
             preds.append(pred)
 
