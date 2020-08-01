@@ -2,8 +2,7 @@ numpy
 scipy
 requests
 torch
-tensorflow-gpu==1.15.2
-torchvision<2.0
+torchvision
 six
 matplotlib
 Pillow
