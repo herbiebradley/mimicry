@@ -2,7 +2,7 @@ numpy
 scipy
 requests
 torch
-tensorflow
+tensorflow-gpu==1.15.2
 torchvision<2.0
 six
 matplotlib
