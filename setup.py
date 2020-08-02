@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 __version__ = '0.1.13'
 url = 'https://github.com/kwotsin/mimicry'
@@ -8,7 +8,6 @@ install_requires = [
     'scipy',
     'requests',
     'torch',
-    'tensorflow',
     'torchvision',
     'six',
     'matplotlib',
