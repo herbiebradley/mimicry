@@ -11,6 +11,7 @@ __pycache__
 .vscode/
 .env
 typings/
+fid/fid_stats_cifar10_train.npz
 
 results
 results/

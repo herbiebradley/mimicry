@@ -1,17 +1,16 @@
 """
 Tutorial of using SSGAN.
 """
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-import numpy as np
-
 import torch_mimicry as mmc
+from torch_mimicry.modules import DBlock, DBlockOptimized, GBlock, SNLinear
 from torch_mimicry.nets import gan
-from torch_mimicry.modules import SNLinear
-from torch_mimicry.modules import GBlock, DBlock, DBlockOptimized
+
 
 #######################
 #        Models
@@ -118,7 +117,7 @@ class SSGANDiscriminator(gan.BaseDiscriminator):
         self.l_y = SNLinear(self.ndf, self.num_classes)
         nn.init.xavier_uniform_(self.l_y.weight.data, 1.0)
 
-        
+
 
     def forward(self, x):
         """
@@ -216,7 +215,7 @@ class SSGANDiscriminator(gan.BaseDiscriminator):
                    netG,
                    optD,
                    log_data,
-                   device=None,                   
+                   device=None,
                    global_step=None,
                    **kwargs):
         """
@@ -293,17 +292,3 @@ trainer = mmc.training.Trainer(
     log_dir=log_dir,
     device=device)
 trainer.train()
-
-##########################
-#       Evaluation
-##########################
-# Evaluate fid
-mmc.metrics.evaluate(
-    metric='fid',
-    log_dir=log_dir,
-    netG=netG,
-    dataset_name='cifar10',
-    num_real_samples=10000,
-    num_fake_samples=10000,
-    evaluate_step=100000,
-    device=device)
