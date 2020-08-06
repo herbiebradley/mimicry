@@ -19,6 +19,11 @@ data
 data/
 models
 models/
+log/
+data/
+checkpoints/
+distillation/
+wandb/
 
 # IPython notebook checkpoints
 .ipynb_checkpoints

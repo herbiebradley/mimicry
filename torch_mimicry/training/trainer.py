@@ -7,7 +7,7 @@ import time
 
 import torch
 
-from torch_mimicry.training import scheduler, logger, metric_log
+from torch_mimicry.training import logger, metric_log, scheduler
 from torch_mimicry.utils import common
 
 
@@ -205,8 +205,8 @@ class Trainer:
             iter_dataloader = iter(self.dataloader)
             real_batch = next(iter_dataloader)
 
-        real_batch = (real_batch[0].to(self.device),
-                      real_batch[1].to(self.device))
+        real_batch = (real_batch[0].to(self.device, non_blocking=True),
+                      real_batch[1].to(self.device, non_blocking=True))
 
         return iter_dataloader, real_batch
 

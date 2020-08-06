@@ -1,70 +1,12 @@
 import argparse
 import os
 import random
-import time
 
 import numpy as np
 import torch
-import torch.optim as optim
-import torchvision
 
 from fid.fid_score import calculate_fid_given_paths
 from fid.inception import InceptionV3
-from torch_mimicry.nets import sngan
-
-
-def generate_fid_images(args):
-    # Data handling objects
-    device = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
-
-    ckpt_dir = os.path.join(args.log_dir, 'checkpoints', 'netG')
-
-    if not os.path.exists(ckpt_dir):
-        raise ValueError(
-            "Checkpoint directory {} cannot be found in log_dir.".format(
-                ckpt_dir))
-    ckpt_file = os.path.join(ckpt_dir, f'netG_{args.iter}_steps.pth')
-
-    netG = sngan.SNGANGenerator32().to(device)
-    netG.restore_checkpoint(ckpt_file=ckpt_file, optimizer=None)
-
-    with torch.no_grad():
-        # Set model to evaluation mode
-        netG.eval()
-
-        fid_img_num = 50000
-        print_every = 20
-        batch_size = min(fid_img_num, args.batch_size)
-        generated_images_dir = os.path.join(args.log_dir, "generated_images")
-        if not os.path.exists(generated_images_dir):
-            os.makedirs(generated_images_dir)
-
-            # Collect all samples()
-            start_time = time.time()
-            img_count = 0
-            for idx in range(fid_img_num // batch_size):
-                # Collect fake image
-                fake_images = netG.generate_images(num_images=batch_size,
-                                                device=device).detach().cpu()
-
-                for img_idx in range(batch_size):
-                    torchvision.utils.save_image(fake_images[img_idx],
-                                                f'{generated_images_dir}/fake_samples_{img_count:05d}.png',
-                                                normalize=True, padding=0)
-                    img_count += 1
-
-                # Print some statistics
-                if (idx + 1) % print_every == 0:
-                    end_time = time.time()
-                    print(
-                        "INFO: Generated image {}/{} ({:.4f} sec/idx)"
-                        .format(
-                            (idx + 1) * batch_size, fid_img_num,
-                            (end_time - start_time) / (print_every * batch_size)))
-                    start_time = end_time
-
-    return generated_images_dir
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -91,7 +33,7 @@ if __name__ == '__main__':
     random.seed(0)
     np.random.seed(0)
 
-    generated_images_dir = generate_fid_images(args)
+    generated_images_dir = os.path.join(args.log_dir, "generated_images")
 
     paths = [generated_images_dir, "fid/fid_stats_cifar10_train.npz"]
     fid_value = calculate_fid_given_paths(paths,
