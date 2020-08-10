@@ -1,9 +1,9 @@
 #!/bin/bash
 pip install -r requirements.txt
 
-pip3 uninstall pillow
+pip uninstall -y Pillow
 
-apt install \
+apt install -y \
     libjpeg-turbo8-dev \
     zlib1g-dev \
     libtiff5-dev \
@@ -15,7 +15,7 @@ apt install \
     libopenjp2-7-dev \
     libraqm0 \
 
-CC="cc -mavx2" pip3 install --no-cache-dir -U -I --force-reinstall pillow-simd \
+CC="cc -mavx2" pip install --no-cache-dir -U -I --force-reinstall pillow-simd \
     --global-option="build_ext" \
     --global-option="--enable-zlib" \
     --global-option="--enable-jpeg" \
