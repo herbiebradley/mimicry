@@ -6,6 +6,7 @@ import re
 import time
 
 import torch
+import wandb
 
 from torch_mimicry.training import logger, metric_log, scheduler
 from torch_mimicry.utils import common
@@ -54,7 +55,9 @@ class Trainer:
                  vis_steps=500,
                  log_steps=50,
                  save_steps=5000,
-                 flush_secs=30):
+                 flush_secs=30,
+                 tensorboard=False,
+                 wandb=True):
         # Input values checks
         ints_to_check = {
             'num_steps': num_steps,
@@ -86,6 +89,8 @@ class Trainer:
         self.vis_steps = vis_steps
         self.log_steps = log_steps
         self.save_steps = save_steps
+        self.tensorboard = tensorboard
+        self.wandb = wandb
 
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
@@ -304,17 +309,26 @@ class Trainer:
                 # -------------------------
                 #   Logging and Metrics
                 # -------------------------
-                if global_step % self.log_steps == 0:
-                    self.logger.write_summaries(log_data=log_data,
-                                                global_step=global_step)
 
                 if global_step % self.print_steps == 0:
                     curr_time = time.time()
+                    iter_time = (curr_time - start_time) / self.print_steps
                     self.logger.print_log(global_step=global_step,
                                           log_data=log_data,
-                                          time_taken=(curr_time - start_time) /
-                                          self.print_steps)
+                                          time_taken=iter_time)
                     start_time = curr_time
+
+                if global_step % self.log_steps == 0:
+                    if self.tensorboard:
+                        self.logger.write_summaries(log_data=log_data,
+                                                    global_step=global_step)
+                    if self.wandb:
+                        wandb.log({'errG': log_data['errG'],
+                                   'errD': log_data['errD'],
+                                   'lr_G': log_data['lr_G'],
+                                   'lr_D': log_data['lr_D'],
+                                   'iteration_time': iter_time},
+                                  step=global_step)
 
                 if global_step % self.vis_steps == 0:
                     self.logger.vis_images(netG=self.netG,

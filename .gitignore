@@ -20,7 +20,6 @@ data/
 models
 models/
 log/
-data/
 checkpoints/
 distillation/
 wandb/

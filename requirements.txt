@@ -3,6 +3,8 @@ scipy
 requests
 torch
 torchvision
+pytorch-lightning
+tensorboard
 six
 matplotlib
 Pillow
@@ -14,3 +16,4 @@ pytest-cov
 pandas
 psutil
 yapf
+wandb
