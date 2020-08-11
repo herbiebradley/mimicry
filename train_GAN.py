@@ -4,9 +4,11 @@ import random
 
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.optim as optim
 import torchvision.utils as vutils
 import wandb
+from torch import autograd
 from torch.utils import data as tdata
 
 import torch_mimicry as mmc
@@ -18,7 +20,6 @@ from utils.gan_utils import generate_images, parse_args
 class CustomCGANPDGenerator32(cgan_pd.CGANPDGenerator32):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        pass
 
     def train_step(self,
                    real_batch,
@@ -55,7 +56,8 @@ class CustomCGANPDGenerator32(cgan_pd.CGANPDGenerator32):
 class CustomCGANPDDiscriminator32(cgan_pd.CGANPDDiscriminator32):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        resnet = resnet18().to(device)
+        self.resnet = resnet18().to(device)
+        self.l2_loss = nn.MSELoss().to(device)
 
     def init_resnet(self, model):
         for m in model.modules():
@@ -93,10 +95,27 @@ class CustomCGANPDDiscriminator32(cgan_pd.CGANPDDiscriminator32):
         errD = self.compute_gan_loss(output_real=output_real,
                                      output_fake=output_fake)
 
-        init_resnet(resnet)
-        # TODO: Pass real images and fake images through resnet,
-        # calculate gradient then get euclidean loss between them.
+        real_images_detached = real_images.detach().to(device).requires_grad_(True)
+        fake_images_detached = fake_images.detach().to(device).requires_grad_(True)
 
+        self.init_resnet(self.resnet)
+        real_resnet_logits = self.resnet(real_images_detached)
+        fake_resnet_logits = self.resnet(fake_images_detached)
+        real_grad = autograd.grad(outputs=real_resnet_logits,
+                                  inputs=real_images_detached,
+                                  grad_outputs=torch.ones_like(real_resnet_logits, device=device),
+                                  create_graph=True,
+                                  retain_graph=True,
+                                  only_inputs=True)[0]
+        fake_grad = autograd.grad(outputs=fake_resnet_logits,
+                                  inputs=fake_images_detached,
+                                  grad_outputs=torch.ones_like(fake_resnet_logits, device=device),
+                                  create_graph=True,
+                                  retain_graph=True,
+                                  only_inputs=True)[0]
+
+        grad_loss = self.l2_loss(real_grad, fake_grad)
+        errD = errD + grad_loss
         # Backprop and update gradients
         errD.backward()
         optD.step()
@@ -122,13 +141,13 @@ if __name__ == "__main__":
 
     # Data handling objects
     device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else "cpu")
-    dataset = mmc.datasets.load_dataset(root='./data', name='cifar10')
+    dataset = mmc.datasets.load_dataset(root='data/', name='cifar10')
     dataloader = tdata.DataLoader(dataset, batch_size=args.batch_size,
                                   shuffle=True, num_workers=8, pin_memory=True)
 
     # Define models and optimizers
     netG = cgan_pd.CGANPDGenerator32(num_classes=10).to(device)
-    netD = cgan_pd.CGANPDDiscriminator32(num_classes=10).to(device)
+    netD = CustomCGANPDDiscriminator32(num_classes=10).to(device)
     optD = optim.Adam(netD.parameters(), args.lr_D, betas=(args.beta1, args.beta2))
     optG = optim.Adam(netG.parameters(), args.lr_G, betas=(args.beta1, args.beta2))
 
@@ -147,4 +166,4 @@ if __name__ == "__main__":
         log_steps=args.log_steps)
     trainer.train()
 
-    generate_images(args, netG)
+    generate_images(args, netG, device)

@@ -8,7 +8,7 @@ import torchvision.utils as vutils
 
 def parse_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--log_dir', type=str, required=True,
+    parser.add_argument('--log_dir', type=str, default='',
                         help='Log directory for run.')
     parser.add_argument('-c', '--gpu', default='0', type=str,
                         help='GPU to use (leave blank for CPU only)')
@@ -34,18 +34,20 @@ def parse_args():
     parser.add_argument('--run', type=str, default='', help="Run Name")
     args = parser.parse_args()
     if args.run == '':
-        args.run = args.log_dir
+        args.run = args.log_dir[4:-1]
+    elif args.log_dir == '':
+        args.log_dir = f'log/{args.run}'
     return args
 
 
-def generate_images(args, netG):
+def generate_images(args, netG, device):
     ckpt_file = os.path.join(args.log_dir, 'checkpoints', 'netG', f'netG_{args.iter}_steps.pth')
-    if not os.path.isfile(ckpt_file):
+    generated_images_dir = os.path.join(args.log_dir, "generated_images")
+    if not os.path.isfile(ckpt_file) or os.path.exists(generated_images_dir):
         print("INFO: No data generated.")
         return
-    netG.restore_checkpoint(ckpt_file=ckpt_file)
-    generated_images_dir = os.path.join(args.log_dir, "generated_images")
     os.makedirs(generated_images_dir, exist_ok=True)
+    netG.restore_checkpoint(ckpt_file=ckpt_file)
     for class_label in range(10):
         os.makedirs(os.path.join(generated_images_dir, f'{class_label}'), exist_ok=True)
 
