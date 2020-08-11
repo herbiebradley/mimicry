@@ -12,7 +12,7 @@ def parse_args():
                         help='Log directory for run.')
     parser.add_argument('-c', '--gpu', default='0', type=str,
                         help='GPU to use (leave blank for CPU only)')
-    parser.add_argument("--iter", default=100000, type=int,
+    parser.add_argument("--iter", default=50000, type=int,
                         help='Number of training iterations.')
     parser.add_argument('--lr_D', type=float, default=0.0002,
                         help='Discriminator learning rate')

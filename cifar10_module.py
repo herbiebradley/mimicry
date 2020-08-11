@@ -6,7 +6,6 @@ from torchvision.datasets import CIFAR10, ImageFolder
 from torchvision.datasets.folder import pil_loader
 
 from cifar10_models import *
-from combined_dataset import CombinedDataset
 
 
 def get_classifier(classifier, pretrained):
@@ -100,9 +99,7 @@ class CIFAR10_Module(pl.LightningModule):
                                               transforms.ToTensor(),
                                               transforms.Normalize(self.mean, self.std)])
         # dataset = CIFAR10(root=self.hparams.data_dir, train=True, transform=transform_train)
-        # dataset = CombinedDataset(transform=transform_train)
         dataset = ImageFolder(root=self.hparams.data_dir, transform=transform_train, loader=pil_loader)
-        # Originally 4 workers
         dataloader = DataLoader(dataset, batch_size=self.hparams.batch_size, num_workers=8, shuffle=True,
                                 drop_last=True, pin_memory=True)
         return dataloader

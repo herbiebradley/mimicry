@@ -22,7 +22,7 @@ if __name__ == '__main__':
                         help='GPU to use (leave blank for CPU only)')
     parser.add_argument("--output_name", default="", type=str,
                         help='Name of method used, to use when logging results')
-    parser.add_argument("--iter", default=100000, type=int,
+    parser.add_argument("--iter", default=50000, type=int,
                         help='Training step iteration, to use when logging results')
 
     args = parser.parse_args()
