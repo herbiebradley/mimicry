@@ -24,6 +24,8 @@ def parse_args():
                         help='Adam beta 1')
     parser.add_argument('--beta2', type=float, default=0.9,
                         help='Adam beta 2')
+    parser.add_argument('--grad_lambda', type=float, default=1.0,
+                        help='Lambda multiplier for grad loss term.')
     parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--n_dis', type=int, default=5,
                         help='Number of iterations of D for each G iteration.')

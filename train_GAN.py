@@ -54,10 +54,11 @@ class CustomCGANPDGenerator32(cgan_pd.CGANPDGenerator32):
 
 
 class CustomCGANPDDiscriminator32(cgan_pd.CGANPDDiscriminator32):
-    def __init__(self, **kwargs):
+    def __init__(self, grad_lambda=1.0, **kwargs):
         super().__init__(**kwargs)
         self.resnet = resnet18().to(device)
         self.l2_loss = nn.MSELoss().to(device)
+        self.grad_alpha = grad_alpha
 
     def init_resnet(self, model):
         for m in model.modules():
@@ -114,10 +115,10 @@ class CustomCGANPDDiscriminator32(cgan_pd.CGANPDDiscriminator32):
                                   retain_graph=True,
                                   only_inputs=True)[0]
 
-        grad_loss = self.l2_loss(real_grad, fake_grad)
-        errD = errD + grad_loss
+        grad_loss = self.grad_lambda * self.l2_loss(real_grad, fake_grad)
+        errD_total = errD + grad_loss
         # Backprop and update gradients
-        errD.backward()
+        errD_total.backward()
         optD.step()
 
         # Compute probabilities
@@ -147,7 +148,7 @@ if __name__ == "__main__":
 
     # Define models and optimizers
     netG = cgan_pd.CGANPDGenerator32(num_classes=10).to(device)
-    netD = CustomCGANPDDiscriminator32(num_classes=10).to(device)
+    netD = CustomCGANPDDiscriminator32(num_classes=10, grad_lambda=args.grad_lambda).to(device)
     optD = optim.Adam(netD.parameters(), args.lr_D, betas=(args.beta1, args.beta2))
     optG = optim.Adam(netG.parameters(), args.lr_G, betas=(args.beta1, args.beta2))
 
