@@ -4,4 +4,4 @@
 
 python train_GAN.py --run "${1}-${2}" --grad_lambda "${2}"
 python calculate_fid.py --log_dir "log/${1}-${2}" --output_name "${1}"
-python cifar10_train.py --run "${1}-${2}" --data_dir "log/${1}/generated_images"
+python cifar10_train.py --run "${1}-${2}" --data_dir "log/${1}-${2}/generated_images"
