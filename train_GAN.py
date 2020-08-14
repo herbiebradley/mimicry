@@ -100,23 +100,24 @@ class CustomCGANPDDiscriminator32(cgan_pd.CGANPDDiscriminator32):
         fake_images_detached = fake_images.detach().to(device).requires_grad_(True)
 
         self.init_resnet(self.resnet)
-        real_resnet_logits = self.resnet(real_images_detached)
         fake_resnet_logits = self.resnet(fake_images_detached)
-        real_grad = autograd.grad(outputs=real_resnet_logits,
-                                  inputs=real_images_detached,
-                                  grad_outputs=torch.ones_like(real_resnet_logits, device=device),
-                                  create_graph=True,
-                                  retain_graph=True,
-                                  only_inputs=True)[0]
+        # real_resnet_logits = self.resnet(real_images_detached)
+        # real_grad = autograd.grad(outputs=real_resnet_logits,
+        #                           inputs=real_images_detached,
+        #                           grad_outputs=torch.ones_like(real_resnet_logits, device=device),
+        #                           create_graph=True,
+        #                           retain_graph=True,
+        #                           only_inputs=True)[0]
         fake_grad = autograd.grad(outputs=fake_resnet_logits,
                                   inputs=fake_images_detached,
                                   grad_outputs=torch.ones_like(fake_resnet_logits, device=device),
                                   create_graph=True,
                                   retain_graph=True,
                                   only_inputs=True)[0]
-
-        grad_loss = self.grad_lambda * self.l2_loss(real_grad, fake_grad)
-        errD_total = errD + grad_loss
+        fake_grad = fake_grad.view(fake_grad.size(0), -1)
+        grad_loss = -fake_grad.norm(2, dim=1).mean()
+        # grad_loss = self.l2_loss(real_grad, fake_grad)
+        errD_total = errD + self.grad_lambda * grad_loss
         # Backprop and update gradients
         errD_total.backward()
         optD.step()
