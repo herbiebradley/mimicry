@@ -23,6 +23,7 @@ log/
 checkpoints/
 distillation/
 wandb/
+cifar10_models/state_dicts/
 
 # IPython notebook checkpoints
 .ipynb_checkpoints
