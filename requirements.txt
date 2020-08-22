@@ -1,9 +1,9 @@
 numpy
 scipy
 requests
-torch
+torch==1.6
 torchvision
-pytorch-lightning
+pytorch-lightning==0.8.5
 tensorboard
 six
 matplotlib

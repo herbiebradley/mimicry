@@ -3,8 +3,8 @@ Implementation of Base GAN models.
 """
 import torch
 
-from torch_mimicry.nets.basemodel import basemodel
 from torch_mimicry.modules import losses
+from torch_mimicry.nets.basemodel import basemodel
 
 
 class BaseGenerator(basemodel.BaseModel):
@@ -65,6 +65,9 @@ class BaseGenerator(basemodel.BaseModel):
 
         elif self.loss_type == "wasserstein":
             errG = losses.wasserstein_loss_gen(output)
+
+        elif self.loss_type == "lsgan":
+            errG = losses.lsgan_loss_gen(output)
 
         else:
             raise ValueError("Invalid loss_type {} selected.".format(
@@ -158,6 +161,10 @@ class BaseDiscriminator(basemodel.BaseModel):
         elif self.loss_type == "wasserstein":
             errD = losses.wasserstein_loss_dis(output_fake=output_fake,
                                                output_real=output_real)
+
+        elif self.loss_type == "lsgan":
+            errD = losses.lsgan_loss_dis(output_fake=output_fake,
+                                         output_real=output_real)
 
         else:
             raise ValueError("Invalid loss_type selected.")
