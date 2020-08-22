@@ -153,9 +153,9 @@ def hinge_loss_gen(output_fake):
 
 
 def lsgan_loss_dis(output_fake,
-                     output_real,
-                     real_label_val=1.0,
-                     fake_label_val=0.0):
+                   output_real,
+                   real_label_val=1.0,
+                   fake_label_val=0.0):
     r"""
     LSGAN discriminator loss for GANs.
 
@@ -177,9 +177,9 @@ def lsgan_loss_dis(output_fake,
                              device=output_real.device)
 
     # FF, compute loss and backprop D
-    errD_fake = F.mse_loss(output=output_fake, labels=fake_labels)
+    errD_fake = F.mse_loss(output_fake, fake_labels)
 
-    errD_real = F.mse_loss(output=output_real, labels=real_labels)
+    errD_real = F.mse_loss(output_real, real_labels)
 
     # Compute cumulative error
     loss = errD_real + errD_fake
@@ -192,8 +192,8 @@ def lsgan_loss_gen(output_fake, real_label_val=1.0):
     LSGAN generator loss for GANs.
 
     Args:
-        output (Tensor): Discriminator output logits.
-        labels (Tensor): Labels for computing cross entropy.
+        output_fake (Tensor): Discriminator output logits for fake images.
+        real_label_val (int): Label for real images.
 
     Returns:
         Tensor: A scalar tensor loss output.

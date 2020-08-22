@@ -32,7 +32,6 @@ CC="cc -mavx2" pip install --no-cache-dir -U -I --force-reinstall pillow-simd \
     --global-option="--enable-webpmux" \
     --global-option="--enable-jpeg2000" \
 
-echo "Pillow Version:"
-python -c "from PIL import __version__; print(__version__)"
+python -c "from PIL import __version__; print(f'Pillow Version: {__version__}')"
 
 wget http://bioinf.jku.at/research/ttur/ttur_stats/fid_stats_cifar10_train.npz -P fid/
