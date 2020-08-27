@@ -36,4 +36,6 @@ python -c "from PIL import __version__; print(f'Pillow Version: {__version__}')"
 
 wget http://bioinf.jku.at/research/ttur/ttur_stats/fid_stats_cifar10_train.npz -P fid/
 
-python cifar10_models/cifar10_download.py
+python cifar10_download.py
+
+rm -rf state_dicts.zip
