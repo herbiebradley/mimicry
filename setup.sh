@@ -35,3 +35,8 @@ CC="cc -mavx2" pip install --no-cache-dir -U -I --force-reinstall pillow-simd \
 python -c "from PIL import __version__; print(f'Pillow Version: {__version__}')"
 
 wget http://bioinf.jku.at/research/ttur/ttur_stats/fid_stats_cifar10_train.npz -P fid/
+
+# Uncomment these if you are using a pretrained CIFAR10 network.
+# python cifar10_download.py
+
+# rm -rf state_dicts.zip
