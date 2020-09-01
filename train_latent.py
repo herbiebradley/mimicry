@@ -42,7 +42,7 @@ if __name__ == "__main__":
                                   shuffle=True, num_workers=8, pin_memory=True)
 
     # Define models and optimizers
-    netG = cgan_pd.CGANPDDiscriminator32(num_classes=10).to(device)
+    netG = cgan_pd.CGANPDGenerator32(num_classes=10).to(device)
     netD = cgan_pd.CGANPDDiscriminator32(num_classes=10).to(device)
     optD = optim.Adam(netD.parameters(), args.lr_D, betas=(args.beta1, args.beta2))
     optG = optim.Adam(netG.parameters(), args.lr_G, betas=(args.beta1, args.beta2))
