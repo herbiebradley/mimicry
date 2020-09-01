@@ -25,6 +25,7 @@ def init_resnet(model):
             nn.init.constant_(m.weight, 1)
             nn.init.constant_(m.bias, 0)
 
+
 if __name__ == "__main__":
     args = parse_args()
 
@@ -70,10 +71,11 @@ if __name__ == "__main__":
         param.requires_grad = False
 
     noise = torch.randn((args.batch_size, 128), device=device, requires_grad=True)
-    label = torch.tensor(0).reshape(1)
-    opt_latent = optim.Adam(noise, 0.001)
+    label = torch.tensor(0, device=device).reshape(1)
+    opt_latent = optim.Adam([noise], lr=0.001)
 
     for iter in range(latent_iters):
+        opt_latent.zero_grad()
         init_resnet(resnet)
         fake_batch = netG.forward(noise, label)
         resnet_output = resnet(fake_batch)
