@@ -56,7 +56,7 @@ class CustomCGANPDGenerator32(cgan_pd.CGANPDGenerator32):
 class CustomCGANPDDiscriminator32(cgan_pd.CGANPDDiscriminator32):
     def __init__(self, grad_lambda=1.0, **kwargs):
         super().__init__(**kwargs)
-        self.resnet = resnet18(pretrained=True).to(device)
+        self.resnet = resnet18().to(device)
         self.l2_loss = nn.MSELoss().to(device)
         self.grad_lambda = grad_lambda
 
