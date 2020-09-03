@@ -1,6 +1,7 @@
 import argparse
 import os
 import random
+import sys
 
 import numpy as np
 import torch
@@ -59,35 +60,50 @@ if __name__ == "__main__":
         dataloader=dataloader,
         log_dir=args.log_dir,
         device=device,
-        log_steps=args.log_steps)
+        log_steps=args.log_steps,
+        wandb=False)
     trainer.train()
 
     ckpt_file = os.path.join(args.log_dir, 'checkpoints', 'netG', f'netG_{args.iter}_steps.pth')
+    generated_images_dir = os.path.join(args.log_dir, "generated_images")
+    if not os.path.isfile(ckpt_file) or os.path.exists(generated_images_dir):
+        print("INFO: No data generated.")
+        sys.exit(0)
+    os.makedirs(generated_images_dir, exist_ok=True)
     netG.restore_checkpoint(ckpt_file=ckpt_file)
-    resnet = resnet18().to(device)
-    latent_iters = 5
+    for class_label in range(10):
+        os.makedirs(os.path.join(generated_images_dir, f'{class_label}'), exist_ok=True)
 
+    resnet = resnet18().to(device)
+    latent_iters = 10000
     for param in resnet.parameters():
         param.requires_grad = False
 
-    noise = torch.randn((args.batch_size, 128), device=device, requires_grad=True)
-    label = torch.tensor(0, device=device).reshape(1)
-    opt_latent = optim.Adam([noise], lr=0.001)
+    for class_idx in range(10):
+        noise = torch.randn((args.batch_size, 128), device=device, requires_grad=True)
+        label = torch.tensor(class_idx, device=device).reshape(1)
+        opt_latent = optim.Adam([noise], lr=0.001)
 
-    for iter in range(latent_iters):
-        opt_latent.zero_grad()
-        init_resnet(resnet)
-        fake_batch = netG.forward(noise, label)
-        resnet_output = resnet(fake_batch)
+        for iter in range(latent_iters):
+            opt_latent.zero_grad()
+            init_resnet(resnet)
+            fake_batch = netG.forward(noise, label)
+            resnet_output = resnet(fake_batch)
 
-        fake_grad = autograd.grad(outputs=resnet_output,
-                                  inputs=fake_batch,
-                                  grad_outputs=torch.ones_like(resnet_output, device=device),
-                                  create_graph=True,
-                                  retain_graph=True,
-                                  only_inputs=True)[0]
-        fake_grad = fake_grad.view(fake_grad.size(0), -1)
-        grad_loss = -fake_grad.norm(2, dim=1).mean()
-        grad_loss.backward()
-        opt_latent.step()
-        wandb.log({'grad_loss': grad_loss}, step=iter)
+            fake_grad = autograd.grad(outputs=resnet_output,
+                                    inputs=fake_batch,
+                                    grad_outputs=torch.ones_like(resnet_output, device=device),
+                                    create_graph=True,
+                                    retain_graph=True,
+                                    only_inputs=True)[0]
+            fake_grad = fake_grad.view(fake_grad.size(0), -1)
+            grad_loss = -fake_grad.norm(2, dim=1).mean()
+            grad_loss.backward()
+            opt_latent.step()
+            wandb.log({'grad_loss': grad_loss}, step=iter)
+
+            if iter >= (latent_iters - 100):
+                for img_count in range(50):
+                    img_path = os.path.join(generated_images_dir, str(class_idx),
+                                            f'{((iter-(latent_iters - 100)) * 50 + img_count):04d}.png')
+                    vutils.save_image(fake_batch[img_count], img_path, normalize=True, padding=0)
