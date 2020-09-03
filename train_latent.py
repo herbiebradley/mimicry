@@ -100,7 +100,7 @@ if __name__ == "__main__":
             grad_loss = -fake_grad.norm(2, dim=1).mean()
             grad_loss.backward()
             opt_latent.step()
-            wandb.log({'grad_loss': grad_loss}, step=iter)
+            wandb.log({'grad_loss': grad_loss}, step=(class_idx * latent_iters) + iter)
 
             if iter >= (latent_iters - 100):
                 for img_count in range(50):
