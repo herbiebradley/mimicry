@@ -79,9 +79,10 @@ if __name__ == "__main__":
     for param in resnet.parameters():
         param.requires_grad = False
 
-    for class_idx in range(10):
+    for class_label in range(10):
+        print(f'Beginning Latent Descent for class index: {class_label}...')
         noise = torch.randn((args.batch_size, 128), device=device, requires_grad=True)
-        label = torch.tensor(class_idx, device=device).reshape(1)
+        label = torch.tensor(class_label, device=device).reshape(1)
         opt_latent = optim.Adam([noise], lr=0.001)
 
         for iter in range(latent_iters):
@@ -100,10 +101,13 @@ if __name__ == "__main__":
             grad_loss = -fake_grad.norm(2, dim=1).mean()
             grad_loss.backward()
             opt_latent.step()
-            wandb.log({'grad_loss': grad_loss}, step=(class_idx * latent_iters) + iter)
+            wandb.log({'grad_loss': grad_loss}, step=(class_label * latent_iters) + iter)
+
+            if iter % 1000 == 0:
+                print(f'At iteration {iter} out of {latent_iters} for class index {class_label}.')
 
             if iter >= (latent_iters - 100):
                 for img_count in range(50):
-                    img_path = os.path.join(generated_images_dir, str(class_idx),
+                    img_path = os.path.join(generated_images_dir, str(class_label),
                                             f'{((iter-(latent_iters - 100)) * 50 + img_count):04d}.png')
                     vutils.save_image(fake_batch[img_count], img_path, normalize=True, padding=0)
