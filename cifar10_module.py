@@ -107,7 +107,7 @@ class CIFAR10_Module(pl.LightningModule):
     def val_dataloader(self):
         transform_val = transforms.Compose([transforms.ToTensor(),
                                             transforms.Normalize(self.mean, self.std)])
-        dataset = CIFAR10(root='data/', train=False, transform=transform_val, download=True)
+        dataset = CIFAR10(root='data/cifar10/', train=False, transform=transform_val, download=True)
         dataloader = DataLoader(dataset, batch_size=self.hparams.batch_size, num_workers=8, pin_memory=True)
         return dataloader
 
