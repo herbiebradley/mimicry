@@ -97,7 +97,11 @@ if __name__ == "__main__":
 
         for iter in range(args.latent_iters):
             opt_latent.zero_grad()
-            real_batch = next(iter_loader)
+            try:
+                real_batch = next(iter_loader)
+            except StopIteration:
+                iter_dataloader = iter(loader)
+                real_batch = next(iter_loader)
             real_batch = real_batch[0].to(device, non_blocking=True).requires_grad_(True)
             fake_batch = netG.forward(noise, label)
 
