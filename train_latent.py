@@ -101,7 +101,7 @@ if __name__ == "__main__":
                 real_batch = next(iter_loader)
             except StopIteration:
                 print
-                iter_dataloader = iter(dataloader)
+                iter_loader = iter(dataloader)
                 real_batch = next(iter_loader)
             real_batch = real_batch[0].to(device, non_blocking=True).requires_grad_(True)
             fake_batch = netG.forward(noise, label)
