@@ -14,6 +14,9 @@ def parse_args():
                         help='GPU to use (leave blank for CPU only)')
     parser.add_argument("--iter", default=50000, type=int,
                         help='Number of training iterations.')
+    parser.add_argument("--latent_iters", default=10000, type=int,
+                        help='Number of iterations to perform gradient descent'
+                        'in the latent space.')
     parser.add_argument('--lr_D', type=float, default=0.0002,
                         help='Discriminator learning rate')
     parser.add_argument('--lr_G', type=float, default=0.0002,

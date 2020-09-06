@@ -99,7 +99,7 @@ class CustomCGANPDDiscriminator32(cgan_pd.CGANPDDiscriminator32):
         real_images_detached = real_images.detach().to(device).requires_grad_(True)
         fake_images_detached = fake_images.detach().to(device).requires_grad_(True)
 
-        # self.init_resnet(self.resnet)
+        self.init_resnet(self.resnet)
         fake_resnet_logits = self.resnet(fake_images_detached)
         real_resnet_logits = self.resnet(real_images_detached)
         real_grad = autograd.grad(outputs=real_resnet_logits,
