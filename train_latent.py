@@ -63,7 +63,7 @@ if __name__ == "__main__":
         optD=optD,
         optG=optG,
         n_dis=5,
-        num_steps=args.iter,
+        num_steps=args.iters,
         lr_decay=args.lr_decay,
         dataloader=dataloader,
         log_dir=args.log_dir,
@@ -72,7 +72,7 @@ if __name__ == "__main__":
         wandb=False)
     trainer.train()
 
-    ckpt_file = os.path.join(args.log_dir, 'checkpoints', 'netG', f'netG_{args.iter}_steps.pth')
+    ckpt_file = os.path.join(args.log_dir, 'checkpoints', 'netG', f'netG_{args.iters}_steps.pth')
     generated_images_dir = os.path.join(args.log_dir, "generated_images")
     os.makedirs(generated_images_dir, exist_ok=True)
     netG.restore_checkpoint(ckpt_file=ckpt_file)
@@ -87,20 +87,21 @@ if __name__ == "__main__":
     for class_label in range(10):
         print(f'Beginning Latent Descent for class index: {class_label}...')
         idx = get_indices(dataset, class_label)
-        loader = tdata.DataLoader(dataset, batch_size=args.batch_size,
+        dataloader = tdata.DataLoader(dataset, batch_size=args.batch_size,
                                   num_workers=8, pin_memory=True, drop_last=True,
                                   sampler=tdata.sampler.SubsetRandomSampler(idx))
-        iter_loader = iter(loader)
+        iter_loader = iter(dataloader)
         noise = torch.randn((args.batch_size, 128), device=device, requires_grad=True)
         label = torch.tensor(class_label, device=device).reshape(1)
         opt_latent = optim.Adam([noise], lr=0.001)
 
-        for iter in range(args.latent_iters):
+        for iteration in range(args.latent_iters):
             opt_latent.zero_grad()
             try:
                 real_batch = next(iter_loader)
             except StopIteration:
-                iter_dataloader = iter(loader)
+                print
+                iter_dataloader = iter(dataloader)
                 real_batch = next(iter_loader)
             real_batch = real_batch[0].to(device, non_blocking=True).requires_grad_(True)
             fake_batch = netG.forward(noise, label)
@@ -128,13 +129,13 @@ if __name__ == "__main__":
             opt_latent.step()
             wandb.log({'grad_loss': grad_loss,
                        'grad_magnitude': fake_grad_loss},
-                      step=(class_label * args.latent_iters) + iter)
+                      step=(class_label * args.latent_iters) + iteration)
 
-            if iter % 1000 == 0:
-                print(f'At iteration {iter} out of {args.latent_iters} for class index {class_label}.')
+            if iteration % 1000 == 0:
+                print(f'At iteration {iteration} out of {args.latent_iters} for class index {class_label}.')
 
-            if iter >= (args.latent_iters - 100):
+            if iteration >= (args.latent_iters - 100):
                 for img_count in range(50):
                     img_path = os.path.join(generated_images_dir, str(class_label),
-                                            f'{((iter-(args.latent_iters - 100)) * 50 + img_count):04d}.png')
+                                            f'{((iteration-(args.latent_iters - 100)) * 50 + img_count):04d}.png')
                     torchvision.utils.save_image(fake_batch[img_count], img_path, normalize=True, padding=0)

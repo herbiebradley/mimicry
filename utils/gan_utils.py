@@ -12,7 +12,7 @@ def parse_args():
                         help='Log directory for run.')
     parser.add_argument('-c', '--gpu', default='0', type=str,
                         help='GPU to use (leave blank for CPU only)')
-    parser.add_argument("--iter", default=50000, type=int,
+    parser.add_argument("--iters", default=50000, type=int,
                         help='Number of training iterations.')
     parser.add_argument("--latent_iters", default=10000, type=int,
                         help='Number of iterations to perform gradient descent'

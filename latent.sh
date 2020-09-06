@@ -10,6 +10,6 @@
 set -euo pipefail
 
 rm -rf log/Latent1/generated_images
-python train_latent.py --run "${1}" --log_dir "log/Latent1" --iter 100000 --latent_iters ${2} --grad_lambda ${3}
+python train_latent.py --run "${1}" --log_dir "log/Latent1" --iters 100000 --latent_iters ${2} --grad_lambda ${3}
 python calculate_fid.py --log_dir "log/Latent1" --output_name "${1}-${2}"
 python cifar10_train.py --run "${1}" --data_dir "log/Latent1/generated_images"
