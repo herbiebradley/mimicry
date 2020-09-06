@@ -88,7 +88,7 @@ if __name__ == "__main__":
         print(f'Beginning Latent Descent for class index: {class_label}...')
         idx = get_indices(dataset, class_label)
         loader = tdata.DataLoader(dataset, batch_size=args.batch_size,
-                                  num_workers=8, pin_memory=True,
+                                  num_workers=8, pin_memory=True, drop_last=True,
                                   sampler=tdata.sampler.SubsetRandomSampler(idx))
         iter_loader = iter(loader)
         noise = torch.randn((args.batch_size, 128), device=device, requires_grad=True)
