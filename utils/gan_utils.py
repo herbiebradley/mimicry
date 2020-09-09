@@ -46,6 +46,7 @@ def parse_args():
 
 
 def generate_images(args, netG, device):
+    """Generate 5k images from each CIFAR10 class with netG and save."""
     ckpt_file = os.path.join(args.log_dir, 'checkpoints', 'netG', f'netG_{args.iter}_steps.pth')
     generated_images_dir = os.path.join(args.log_dir, "generated_images")
     if not os.path.isfile(ckpt_file) or os.path.exists(generated_images_dir):

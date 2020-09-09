@@ -28,6 +28,7 @@ def init_resnet(model):
 
 
 def get_indices(dataset, class_name):
+    """Return indices of class_name in dataset."""
     indices = []
     for i in range(len(dataset.targets)):
         if dataset.targets[i] == class_name:
@@ -72,6 +73,7 @@ if __name__ == "__main__":
         wandb=False)
     trainer.train()
 
+    # Get checkpoint file and restore it.
     ckpt_file = os.path.join(args.log_dir, 'checkpoints', 'netG', f'netG_{args.iters}_steps.pth')
     generated_images_dir = os.path.join(args.log_dir, "generated_images")
     os.makedirs(generated_images_dir, exist_ok=True)
@@ -79,6 +81,7 @@ if __name__ == "__main__":
     for class_label in range(10):
         os.makedirs(os.path.join(generated_images_dir, f'{class_label}'), exist_ok=True)
 
+    # Init gradient difference loss and residual network.
     l2_loss = nn.MSELoss().to(device)
     resnet = resnet18().to(device)
     for param in resnet.parameters():
@@ -86,17 +89,21 @@ if __name__ == "__main__":
 
     for class_label in range(10):
         print(f'Beginning Latent Descent for class index: {class_label}...')
+        # Get the indices of the images with the label 'class_label' in CIFAR10.
         idx = get_indices(dataset, class_label)
+        # Load the indices into a torch.utils.data.DataLoader
         dataloader = tdata.DataLoader(dataset, batch_size=args.batch_size,
                                   num_workers=8, pin_memory=True, drop_last=True,
                                   sampler=tdata.sampler.SubsetRandomSampler(idx))
         iter_loader = iter(dataloader)
+        # Sample random noise and define optimiser.
         noise = torch.randn((args.batch_size, 128), device=device, requires_grad=True)
         label = torch.tensor(class_label, device=device).reshape(1)
         opt_latent = optim.Adam([noise], lr=0.001)
 
         for iteration in range(args.latent_iters):
             opt_latent.zero_grad()
+            # Get batch of data.
             try:
                 real_batch = next(iter_loader)
             except StopIteration:
@@ -104,11 +111,14 @@ if __name__ == "__main__":
                 iter_loader = iter(dataloader)
                 real_batch = next(iter_loader)
             real_batch = real_batch[0].to(device, non_blocking=True).requires_grad_(True)
+            # Generate image from noise.
             fake_batch = netG.forward(noise, label)
 
+            # Pass real and fake images through resnet.
             init_resnet(resnet)
             fake_resnet_logits = resnet(fake_batch)
             real_resnet_logits = resnet(real_batch)
+            # Get gradients of resnet outputs with respect to the real and fake images.
             real_grad = autograd.grad(outputs=real_resnet_logits,
                                   inputs=real_batch,
                                   grad_outputs=torch.ones_like(real_resnet_logits, device=device),
@@ -121,9 +131,12 @@ if __name__ == "__main__":
                                     create_graph=True,
                                     retain_graph=True,
                                     only_inputs=True)[0]
+            # Gradient difference loss
             grad_loss = l2_loss(real_grad, fake_grad)
+            # Gradient magnitude loss.
             fake_grad = fake_grad.view(fake_grad.size(0), -1)
             fake_grad_loss = -fake_grad.norm(2, dim=1).mean()
+            # L_2 loss + lambda * magnitude loss.
             grad_loss = grad_loss + args.grad_lambda * fake_grad_loss
             grad_loss.backward()
             opt_latent.step()

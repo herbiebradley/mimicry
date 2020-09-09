@@ -38,5 +38,4 @@ wget http://bioinf.jku.at/research/ttur/ttur_stats/fid_stats_cifar10_train.npz -
 
 # Uncomment these if you are using a pretrained CIFAR10 network.
 # python cifar10_download.py
-
 # rm -rf state_dicts.zip

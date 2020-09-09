@@ -56,7 +56,8 @@ class CustomCGANPDGenerator32(cgan_pd.CGANPDGenerator32):
 class CustomCGANPDDiscriminator32(cgan_pd.CGANPDDiscriminator32):
     def __init__(self, grad_lambda=1.0, **kwargs):
         super().__init__(**kwargs)
-        self.resnet = resnet18().to(device)
+        # Change pretrained to True to enable pretrained resnet, after downloading the weights.
+        self.resnet = resnet18(pretrained=False).to(device)
         self.l2_loss = nn.MSELoss().to(device)
         self.grad_lambda = grad_lambda
 
@@ -99,9 +100,11 @@ class CustomCGANPDDiscriminator32(cgan_pd.CGANPDDiscriminator32):
         real_images_detached = real_images.detach().to(device).requires_grad_(True)
         fake_images_detached = fake_images.detach().to(device).requires_grad_(True)
 
+        # Init resnet and pass real and fake images through it.
         self.init_resnet(self.resnet)
         fake_resnet_logits = self.resnet(fake_images_detached)
         real_resnet_logits = self.resnet(real_images_detached)
+        # Calculate gradients of resnet output with respect to real and fake images.
         real_grad = autograd.grad(outputs=real_resnet_logits,
                                   inputs=real_images_detached,
                                   grad_outputs=torch.ones_like(real_resnet_logits, device=device),
@@ -114,8 +117,11 @@ class CustomCGANPDDiscriminator32(cgan_pd.CGANPDDiscriminator32):
                                   create_graph=True,
                                   retain_graph=True,
                                   only_inputs=True)[0]
+        # Uncomment the below lines for gradient magnitude loss.
         # fake_grad = fake_grad.view(fake_grad.size(0), -1)
         # grad_loss = -fake_grad.norm(2, dim=1).mean()
+
+        # L2 gradient difference loss.
         grad_loss = self.l2_loss(real_grad, fake_grad)
         errD_total = errD + self.grad_lambda * grad_loss
         # Backprop and update gradients
@@ -135,6 +141,7 @@ class CustomCGANPDDiscriminator32(cgan_pd.CGANPDDiscriminator32):
 if __name__ == "__main__":
     args = parse_args()
 
+    # Set all random seeds.
     torch.manual_seed(args.seed)
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -168,4 +175,5 @@ if __name__ == "__main__":
         log_steps=args.log_steps)
     trainer.train()
 
+    # Save 5000 generated images from each class.
     generate_images(args, netG, device)
